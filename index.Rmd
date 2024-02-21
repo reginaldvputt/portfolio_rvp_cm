@@ -7,10 +7,6 @@ output:
 date: "2024-02-21"
 ---
 
-#```{r setup, include=FALSE}
-#knitr::opts_chunk$set(echo = TRUE)
-#```
-
 ### Introduction
 Welcome to my portfolio etc!
 
