@@ -7,8 +7,13 @@ output:
 date: "2024-02-21"
 ---
 ```{r variabels, echo=FALSE}
+library(flexdashboard)
+library(readr)
+library(lubridate)
+library(ggplot2)
 library(tidyverse)
 library(spotifyr)
+library(compmus)
 id <- "3224ef21d8e245689234aa11d3f2e919"
 secret <-"f83518a285bd4bdfbfd77bdda440df7e"
 Sys.setenv(SPOTIFY_CLIENT_ID = id)
@@ -17,7 +22,6 @@ access_token <- get_spotify_access_token()
 ```
 
 ```{r loading_playlists, echo=FALSE}
-loading_playlists <- function(x) {
 pb_features = get_playlist_audio_features("","1dDP0J8kZlyQJ1kw2heuqN") #1
 pb_features_2 = get_playlist_audio_features("","5f67hG4cT4vuCbpp2ZJSAC") #2
 cs_features = get_playlist_audio_features("","1xAbFlGMk4NeTcHlXVxNIT") #1
@@ -30,12 +34,10 @@ psychology_features = get_playlist_audio_features("","7lN3BZW8AhOzpLpyPY5FqA") #
 biology_features = get_playlist_audio_features("","2ZyiCXQK1GUCfp33TSOQO6") #1
 sw_features = get_playlist_audio_features("","7FfkG5ZbE9IhpJNOHBqRZM") #1
 ai_features = get_playlist_audio_features("","61qvD51DpYY12Sh0GDsmwl") #1
-}
 
 ```
 
 ```{r faculty_dividing, echo=FALSE}
-faculty_dividing <- function(x) {
 sci = "Faculty of Science"
 hum = "Faculty of Humanities"
 med = "Faculty of Medicine"
@@ -57,11 +59,16 @@ final_data <-
     sw_features |> mutate(bachelor = "Social works", faculty = soc),
     ai_features |> mutate(bachelor = "Artifical intelligence", faculty = sci)
   )
-}
 ```
 
-```{r make_plot, echo = FALSE}
-make_plot <- function(x) {
+
+### Introduction
+Welcome to my portfolio etc!
+
+### Visualization
+
+This page will show your data/graphs etc.
+```{r make_plot}
 final_data |>                    # Start with awards.
   mutate(
     mode = ifelse(mode == 0, "Minor", "Major")
@@ -121,15 +128,7 @@ final_data |>                    # Start with awards.
     title = "Top 5 songs for different bachelors",
     colour = "Bachelor"
   )
-}
 ```
-
-### Introduction
-Welcome to my portfolio etc!
-
-### Visualization
-
-This page will show your data/graphs etc.
 
 ***
 This is a sidebar from the plot.
