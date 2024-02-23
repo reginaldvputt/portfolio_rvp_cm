@@ -26,7 +26,7 @@ pb_features = get_playlist_audio_features("","1dDP0J8kZlyQJ1kw2heuqN") #1
 pb_features_2 = get_playlist_audio_features("","5f67hG4cT4vuCbpp2ZJSAC") #2
 cs_features = get_playlist_audio_features("","1xAbFlGMk4NeTcHlXVxNIT") #1
 bs_features = get_playlist_audio_features("","55RF4Rd8rbn4cYKS5fCn2r") #1
-#ce_features = get_playlist_audio_features("","") #1, not done
+ce_features = get_playlist_audio_features("","0ZgkUJVQ5FjavIZBp7zDK7") #
 medicine_features = get_playlist_audio_features("","5BTPZghhEMr9e6mfGHmv0A") #1
 id_features = get_playlist_audio_features("","01HKzQnzQ5XLn5OefshdIx") #1
 me_features = get_playlist_audio_features("","1kZBSsmIMAUocJgM6Dm32F") #1
@@ -34,6 +34,8 @@ psychology_features = get_playlist_audio_features("","7lN3BZW8AhOzpLpyPY5FqA") #
 biology_features = get_playlist_audio_features("","2ZyiCXQK1GUCfp33TSOQO6") #1
 sw_features = get_playlist_audio_features("","7FfkG5ZbE9IhpJNOHBqRZM") #1
 ai_features = get_playlist_audio_features("","61qvD51DpYY12Sh0GDsmwl") #1
+ai_features_2 = get_playlist_audio_features("", "2ESdPa7Lsat6szfqcb8TqG") #2
+bs_features_2 = get_playlist_audio_features("","4gud4X0Q6RV9M2tioEMOvy") #2
 
 ```
 
@@ -50,24 +52,29 @@ final_data <-
     pb_features_2 |> mutate(bachelor = "Psychobiology", faculty = sci),
     cs_features |> mutate(bachelor = "Communication science", faculty = soc),
     bs_features |> mutate(bachelor = "Biomedical science", faculty = sci),
-    #ce_features |> mutate(bachelor = "Civil engineering"),
+    ce_features |> mutate(bachelor = "Civil engineering", faculty = tech),
     medicine_features |> mutate(bachelor = "Medicine", faculty = med),
     id_features |> mutate(bachelor = "Industrial engineering", faculty = tech),
     me_features |> mutate(bachelor = "Mechanical engineering", faculty = tech),
     psychology_features |> mutate(bachelor = "Psychology", faculty = soc),
     biology_features |> mutate(bachelor = "Biology", faculty = sci),
     sw_features |> mutate(bachelor = "Social works", faculty = soc),
-    ai_features |> mutate(bachelor = "Artifical intelligence", faculty = sci)
+    ai_features |> mutate(bachelor = "Artifical intelligence", faculty = sci),
+    ai_features_2 |> mutate(bachelor = "Artifical intelligence", faculty = sci),
+    bs_features_2 |> mutate(bachelor = "Biomedical science", faculty = sci),
+    
   )
 ```
 
 
 ### Introduction
-Welcome to my portfolio etc!
+Welcome to my portfolio,
+
+I'm Reginald van Putt and this is my portfolio for the course Computational Musicology (UvA). In this portfolio I will investigate a corpus that I have created with help of my peers and friends. The corpus exists off the top 5 songs of people from all kinds of bachelors. With this corpus I'm trying to investigate whether or not there is a significant difference in study directions in terms of music taste. Specifically looking at the valence, energy and genre of songs.
 
 ### Visualization
 
-This page will show your data/graphs etc.
+
 ```{r make_plot}
 final_data |>                    # Start with awards.
   mutate(
@@ -131,7 +138,7 @@ final_data |>                    # Start with awards.
 ```
 
 ***
-This is a sidebar from the plot.
+Here you can see one of the graphs that I have created. 
 
 ### Discussion/conclusion
 
