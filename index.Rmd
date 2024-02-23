@@ -4,9 +4,12 @@ author: "Reginald van Putt"
 output: 
   flexdashboard::flex_dashboard:
     storyboard: true
+    orientation: columns
+    
 date: "2024-02-21"
 ---
 ```{r variabels, echo=FALSE}
+# Loading in libraries
 library(flexdashboard)
 library(readr)
 library(lubridate)
@@ -14,6 +17,10 @@ library(ggplot2)
 library(tidyverse)
 library(spotifyr)
 library(compmus)
+
+# Set default chunk options for all plots
+knitr::opts_chunk$set(fig.width = 5, fig.height = 4)
+
 id <- "3224ef21d8e245689234aa11d3f2e919"
 secret <-"f83518a285bd4bdfbfd77bdda440df7e"
 Sys.setenv(SPOTIFY_CLIENT_ID = id)
@@ -34,7 +41,7 @@ psychology_features = get_playlist_audio_features("","7lN3BZW8AhOzpLpyPY5FqA") #
 biology_features = get_playlist_audio_features("","2ZyiCXQK1GUCfp33TSOQO6") #1
 sw_features = get_playlist_audio_features("","7FfkG5ZbE9IhpJNOHBqRZM") #1
 ai_features = get_playlist_audio_features("","61qvD51DpYY12Sh0GDsmwl") #1
-ai_features_2 = get_playlist_audio_features("", "2ESdPa7Lsat6szfqcb8TqG") #2
+ai_features_2 = get_playlist_audio_features("","2ESdPa7Lsat6szfqcb8TqG") #2
 bs_features_2 = get_playlist_audio_features("","4gud4X0Q6RV9M2tioEMOvy") #2
 
 ```
@@ -70,7 +77,11 @@ final_data <-
 ### Introduction
 Welcome to my portfolio,
 
-I'm Reginald van Putt and this is my portfolio for the course Computational Musicology (UvA). In this portfolio I will investigate a corpus that I have created with help of my peers and friends. The corpus exists off the top 5 songs of people from all kinds of bachelors. With this corpus I'm trying to investigate whether or not there is a significant difference in study directions in terms of music taste. Specifically looking at the valence, energy and genre of songs.
+I'm Reginald van Putt and this is my portfolio for the course Computational Musicology (UvA). In this portfolio I will investigate a corpus that I have created with help of my peers and friends. The corpus exists off the top 5 songs of people from all kinds of bachelors. With this corpus I'm trying to investigate whether or not there is a significant difference in study directions in terms of music taste. Specifically looking at the valence, energy and genre of songs. 
+
+*Why?*
+
+The reason why I wanted to investigate this is because I quite often ask people about their music taste and I have done a few courses from different faculties and it seemed to me that different faculties (i.e. FNWI vs AI) have quite different tastes in music. So I that's why I wanted to analyse more data and see if there is a significant difference.
 
 ### Visualization
 
@@ -84,7 +95,7 @@ final_data |>                    # Start with awards.
     aes(
       x = valence,
       y = energy,
-      size = loudness,
+      #size = loudness,
       colour = bachelor
     )
   ) +
@@ -138,12 +149,81 @@ final_data |>                    # Start with awards.
 ```
 
 ***
-Here you can see one of the graphs that I have created. 
+This is a temporary graph that shows all the data I have incorperated in my corpus untill now. I have more data to incorperate (but this takes a lot of time) and I keep receiving more data through google forms and the canvas discussions. For now this is the layout and format I have chosen to use. On the x-axis you can see the valence and on the y-axis the energy of the songs. The songs plotted are the top 5 songs of many peers and friends, the colors are divided based on their bachelor and the graphs are divided based on faculty/direction of the bachelor. This might change in the future but I still have not decided how to split all bachelors/data. 
+
+### Chromagram
+
+```{r chromagram}
+#chromagram 1
+outlier <-
+  get_tidy_audio_analysis("1oDCK7PW72XEZ1pE5rh87A") |>
+  select(segments) |>
+  unnest(segments) |>
+  select(start, duration, pitches)
+
+outlier_duration = duration
+
+outlier |>
+  mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
+  compmus_gather_chroma() |> 
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = pitch_class,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  theme_minimal() +
+  scale_fill_viridis_c() +
+  ggtitle("The outlier") +
+  theme(plot.caption = element_text(hjust = 0, margin = margin(t = 10))) +
+  labs(caption = "This is the chromagram of a song that is an outlier, meaning it is far away from all other songs of the corpus in terms of valence and energy. ") 
+  #theme(plot.margin = margin(1, 1, 1, 1, "cm")) +
+  #theme(plot.background = element_rect(fill = "white", colour = "black")) +
+  #theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5))
+
+#chromagram 2
+normal_song <-
+  get_tidy_audio_analysis("6fl6EkGqKlpZECkys1iDsq") |>
+  select(segments) |>
+  unnest(segments) |>
+  select(start, duration, pitches)
+
+normal_song |>
+  mutate(pitches = map(pitches, compmus_normalise, "euclidean")) |>
+  compmus_gather_chroma() |> 
+  ggplot(
+    aes(
+      x = start + duration / 2,
+      width = duration,
+      y = pitch_class,
+      fill = value
+    )
+  ) +
+  geom_tile() +
+  labs(x = "Time (s)", y = NULL, fill = "Magnitude") +
+  theme_minimal() +
+  scale_fill_viridis_c() +
+  ggtitle("'Average song'") +
+  theme(plot.caption = element_text(hjust = 0, margin = margin(t = 10))) +
+    labs(caption = "This is the chromagram of a song that is quite average, meaning it is pretty much in the middle off all other songs of the corpus in terms of valence and energy. ") 
+
+  #theme(plot.margin = margin(1, 1, 1, 1, "cm")) +
+  #theme(plot.background = element_rect(fill = "white", colour = "black")) +
+  #theme(plot.title = element_text(hjust = 0.5), plot.subtitle = element_text(hjust = 0.5))
+```
+
+***
+The reason that the left song has lower energy and valence might be due to the lower frequency of notes, it looks like the amount of notes is quite a bit lower then in the right song / average song. Secondly the valence might be lower because of the fact that the outlier song is mostly minor while the average song is mostly major (according to spotify). Which you might be able to see looking at the chords played througout the song.
+
+P.S. I know that the graphs are not of the same size, I have spend an hour and a half trying to fix that and I could not do it. I'm not planning on using chromagrams in my final portfolio if not manditory so I did not want to spend more time then 2 hours on fixing the sizes of graphs.
 
 ### Discussion/conclusion
 
-The discussion and conclusion will display here. 
-Let's test if something is broken or not
+I have not yet had the time to do a statistic analysis (and I have also not added all the data yet) so I have no clear conclusion yet. For now with the naked eye it seems like there is no significant difference between different groups (excluding the Faculty of Medicine because of the low sample size). 
 
 
 
