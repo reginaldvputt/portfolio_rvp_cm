@@ -43,6 +43,10 @@ sw_features = get_playlist_audio_features("","7FfkG5ZbE9IhpJNOHBqRZM") #1
 ai_features = get_playlist_audio_features("","61qvD51DpYY12Sh0GDsmwl") #1
 ai_features_2 = get_playlist_audio_features("","2ESdPa7Lsat6szfqcb8TqG") #2
 bs_features_2 = get_playlist_audio_features("","4gud4X0Q6RV9M2tioEMOvy") #2
+musicology_features = get_playlist_audio_features("","2GNR2qLtjanP6VtxKmIERI") #1
+musicology_features_2 = get_playlist_audio_features("","2Cmef8ivNr7eIby2eYDInj") #2
+art_features = get_playlist_audio_features("","4eRCLFaLG2PcT3RcJpEVA5") #1
+ai_features_3 = get_playlist_audio_features("","05BS3494bYcIokpptZbpgg")
 
 ```
 
@@ -69,6 +73,10 @@ final_data <-
     ai_features |> mutate(bachelor = "Artifical intelligence", faculty = sci),
     ai_features_2 |> mutate(bachelor = "Artifical intelligence", faculty = sci),
     bs_features_2 |> mutate(bachelor = "Biomedical science", faculty = sci),
+    musicology_features |> mutate(bachelor = "Musicology", faculty = hum), #music = TRUE
+    musicology_features_2 |> mutate(bachelor = "Musicology", faculty = hum), #music = TRUE
+    art_features |> mutate(bachelor = "Art and Music", faculty = hum),
+    ai_features_3 |> mutate(bachelor = "Artifical intelligence", faculty = sci), #music = FALSE
     
   )
 ```
@@ -150,6 +158,17 @@ final_data |>                    # Start with awards.
 
 ***
 This is a temporary graph that shows all the data I have incorperated in my corpus untill now. I have more data to incorperate (but this takes a lot of time) and I keep receiving more data through google forms and the canvas discussions. For now this is the layout and format I have chosen to use. On the x-axis you can see the valence and on the y-axis the energy of the songs. The songs plotted are the top 5 songs of many peers and friends, the colors are divided based on their bachelor and the graphs are divided based on faculty/direction of the bachelor. This might change in the future but I still have not decided how to split all bachelors/data. 
+
+### Statistical analysis
+
+```{r statistcal_analysis}
+
+final_data %>%
+  group_by(faculty) %>%
+  select(valence, energy, faculty, bachelor) %>%
+  summarize(mean_valence = mean(valence), mean_energy = mean(energy), sd_valence = sd(valence), sd_energy = sd(energy))
+
+```
 
 ### Chromagram
 
