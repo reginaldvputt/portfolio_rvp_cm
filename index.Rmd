@@ -17,6 +17,7 @@ library(ggplot2)
 library(tidyverse)
 library(spotifyr)
 library(compmus)
+library(agricolae)
 
 # Set default chunk options for all plots
 knitr::opts_chunk$set(fig.width = 5, fig.height = 4)
@@ -163,10 +164,22 @@ This is a temporary graph that shows all the data I have incorperated in my corp
 
 ```{r statistcal_analysis}
 
-final_data %>%
-  group_by(faculty) %>%
-  select(valence, energy, faculty, bachelor) %>%
-  summarize(mean_valence = mean(valence), mean_energy = mean(energy), sd_valence = sd(valence), sd_energy = sd(energy))
+#final_data %>%
+  #group_by(faculty) %>%
+  #select(valence, energy, faculty, bachelor) %>%
+  #summarize(mean_valence = mean(valence), mean_energy = mean(energy), sd_valence = sd(valence), sd_energy = sd(energy))
+
+anova_result_1 <- aov(energy ~ faculty, data = final_data)
+anova_result_2 <- aov(valence ~ faculty, data = final_data)
+
+#summary(anova_result_1)
+#summary(anova_result_2)
+
+tukey_result_1 <- HSD.test(anova_result_1, "faculty", group = TRUE)
+tukey_result_2 <- HSD.test(anova_result_2, "faculty", group = TRUE)
+
+summary(tukey_result_1)
+summary(tukey_result_2)
 
 ```
 
