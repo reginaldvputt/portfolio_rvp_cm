@@ -175,8 +175,8 @@ anova_result_2 <- aov(valence ~ faculty, data = final_data)
 #summary(anova_result_1)
 #summary(anova_result_2)
 
-tukey_result_1 <- HSD.test(anova_result_1, "faculty", group = TRUE, console = TRUE)
-tukey_result_2 <- HSD.test(anova_result_2, "faculty", group = TRUE)
+#tukey_result_1 <- HSD.test(anova_result_1, "faculty", group = TRUE) #energy
+tukey_result_1 <- HSD.test(anova_result_2, "faculty", group = TRUE) #valence
 
 # Access the "statistics" component
 statistics <- tukey_result_1$statistics
@@ -190,8 +190,9 @@ means <- tukey_result_1$means
 # Access the "groups" component
 groups <- tukey_result_1$groups
 
-print(groups)
-print(statistics)
+print(tukey_result_1)
+#print(groups)
+#print(statistics)
 
 ```
 
