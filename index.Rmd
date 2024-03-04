@@ -30,24 +30,34 @@ access_token <- get_spotify_access_token()
 ```
 
 ```{r loading_playlists, echo=FALSE}
+#science
 pb_features = get_playlist_audio_features("","1dDP0J8kZlyQJ1kw2heuqN") #1
 pb_features_2 = get_playlist_audio_features("","5f67hG4cT4vuCbpp2ZJSAC") #2
-cs_features = get_playlist_audio_features("","1xAbFlGMk4NeTcHlXVxNIT") #1
 bs_features = get_playlist_audio_features("","55RF4Rd8rbn4cYKS5fCn2r") #1
-ce_features = get_playlist_audio_features("","0ZgkUJVQ5FjavIZBp7zDK7") #
+bs_features_2 = get_playlist_audio_features("","4gud4X0Q6RV9M2tioEMOvy") #2
 medicine_features = get_playlist_audio_features("","5BTPZghhEMr9e6mfGHmv0A") #1
-id_features = get_playlist_audio_features("","01HKzQnzQ5XLn5OefshdIx") #1
-me_features = get_playlist_audio_features("","1kZBSsmIMAUocJgM6Dm32F") #1
-psychology_features = get_playlist_audio_features("","7lN3BZW8AhOzpLpyPY5FqA") #1
 biology_features = get_playlist_audio_features("","2ZyiCXQK1GUCfp33TSOQO6") #1
-sw_features = get_playlist_audio_features("","7FfkG5ZbE9IhpJNOHBqRZM") #1
 ai_features = get_playlist_audio_features("","61qvD51DpYY12Sh0GDsmwl") #1
 ai_features_2 = get_playlist_audio_features("","2ESdPa7Lsat6szfqcb8TqG") #2
-bs_features_2 = get_playlist_audio_features("","4gud4X0Q6RV9M2tioEMOvy") #2
+ai_features_3 = get_playlist_audio_features("","05BS3494bYcIokpptZbpgg") #3
+
+#technical uni
+ce_features = get_playlist_audio_features("","0ZgkUJVQ5FjavIZBp7zDK7") #1
+id_features = get_playlist_audio_features("","01HKzQnzQ5XLn5OefshdIx") #1
+me_features = get_playlist_audio_features("","1kZBSsmIMAUocJgM6Dm32F") #1
+
+
+#social sciences
+cs_features = get_playlist_audio_features("","1xAbFlGMk4NeTcHlXVxNIT") #1
+psychology_features = get_playlist_audio_features("","7lN3BZW8AhOzpLpyPY5FqA") #1
+sw_features = get_playlist_audio_features("","7FfkG5ZbE9IhpJNOHBqRZM") #1
+cs_mmd_features = get_playlist_audio_features("","7bK5sUCOoSwURe0qHZSfLM") #1
+
+#humanities
 musicology_features = get_playlist_audio_features("","2GNR2qLtjanP6VtxKmIERI") #1
 musicology_features_2 = get_playlist_audio_features("","2Cmef8ivNr7eIby2eYDInj") #2
 art_features = get_playlist_audio_features("","4eRCLFaLG2PcT3RcJpEVA5") #1
-ai_features_3 = get_playlist_audio_features("","05BS3494bYcIokpptZbpgg")
+
 
 ```
 
@@ -60,24 +70,34 @@ soc = "Social and Behavior studies"
 
 final_data <-
   bind_rows(
+    #science
     pb_features |> mutate(bachelor = "Psychobiology", faculty = sci),
     pb_features_2 |> mutate(bachelor = "Psychobiology", faculty = sci),
-    cs_features |> mutate(bachelor = "Communication science", faculty = soc),
     bs_features |> mutate(bachelor = "Biomedical science", faculty = sci),
-    ce_features |> mutate(bachelor = "Civil engineering", faculty = tech),
-    medicine_features |> mutate(bachelor = "Medicine", faculty = med),
-    id_features |> mutate(bachelor = "Industrial engineering", faculty = tech),
-    me_features |> mutate(bachelor = "Mechanical engineering", faculty = tech),
-    psychology_features |> mutate(bachelor = "Psychology", faculty = soc),
+    bs_features_2 |> mutate(bachelor = "Biomedical science", faculty = sci),
     biology_features |> mutate(bachelor = "Biology", faculty = sci),
-    sw_features |> mutate(bachelor = "Social works", faculty = soc),
     ai_features |> mutate(bachelor = "Artifical intelligence", faculty = sci),
     ai_features_2 |> mutate(bachelor = "Artifical intelligence", faculty = sci),
-    bs_features_2 |> mutate(bachelor = "Biomedical science", faculty = sci),
+    ai_features_3 |> mutate(bachelor = "Artifical intelligence", faculty = sci), #music = FALSE
+    medicine_features |> mutate(bachelor = "Medicine", faculty = sci),
+    
+    #technical uni
+    ce_features |> mutate(bachelor = "Civil engineering", faculty = tech),
+    id_features |> mutate(bachelor = "Industrial engineering", faculty = tech),
+    me_features |> mutate(bachelor = "Mechanical engineering", faculty = tech),
+    
+    #social sciences
+    cs_features |> mutate(bachelor = "Communication science", faculty = soc),
+    psychology_features |> mutate(bachelor = "Psychology", faculty = soc),
+    sw_features |> mutate(bachelor = "Social works", faculty = soc),
+    cs_mmd_features |> mutate(bachelor = "Communication and multimedia design", faculty = soc),
+    
+    
+    #humanities
     musicology_features |> mutate(bachelor = "Musicology", faculty = hum), #music = TRUE
     musicology_features_2 |> mutate(bachelor = "Musicology", faculty = hum), #music = TRUE
-    art_features |> mutate(bachelor = "Art and Music", faculty = hum),
-    ai_features_3 |> mutate(bachelor = "Artifical intelligence", faculty = sci), #music = FALSE
+    art_features |> mutate(bachelor = "Art and Music", faculty = hum)
+
     
   )
 ```
