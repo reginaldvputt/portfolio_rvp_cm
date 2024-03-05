@@ -45,6 +45,7 @@ ai_features_3 = get_playlist_audio_features("","05BS3494bYcIokpptZbpgg") #3
 ce_features = get_playlist_audio_features("","0ZgkUJVQ5FjavIZBp7zDK7") #1
 id_features = get_playlist_audio_features("","01HKzQnzQ5XLn5OefshdIx") #1
 me_features = get_playlist_audio_features("","1kZBSsmIMAUocJgM6Dm32F") #1
+se_features = get_playlist_audio_features("","4jD1Ua5umx6PTvqhPxD6Qg") #1
 
 
 #social sciences
@@ -52,6 +53,8 @@ cs_features = get_playlist_audio_features("","1xAbFlGMk4NeTcHlXVxNIT") #1
 psychology_features = get_playlist_audio_features("","7lN3BZW8AhOzpLpyPY5FqA") #1
 sw_features = get_playlist_audio_features("","7FfkG5ZbE9IhpJNOHBqRZM") #1
 cs_mmd_features = get_playlist_audio_features("","7bK5sUCOoSwURe0qHZSfLM") #1
+education_features = get_playlist_audio_features("","6lUVL6Tq0RRUPqSdjP3ChC") #1
+soc_features = get_playlist_audio_features("","0e5Xnkt5CG4DhnpvUtlsAy") #1
 
 #humanities
 musicology_features = get_playlist_audio_features("","2GNR2qLtjanP6VtxKmIERI") #1
@@ -85,12 +88,15 @@ final_data <-
     ce_features |> mutate(bachelor = "Civil engineering", faculty = tech),
     id_features |> mutate(bachelor = "Industrial engineering", faculty = tech),
     me_features |> mutate(bachelor = "Mechanical engineering", faculty = tech),
+    se_features |> mutate(bachelor = "Software engineering", faculty = tech), #music = FALSE
     
     #social sciences
     cs_features |> mutate(bachelor = "Communication science", faculty = soc),
     psychology_features |> mutate(bachelor = "Psychology", faculty = soc),
     sw_features |> mutate(bachelor = "Social works", faculty = soc),
-    cs_mmd_features |> mutate(bachelor = "Communication and multimedia design", faculty = soc),
+    cs_mmd_features |> mutate(bachelor = "Communication and multimedia design", faculty = soc), #music = TRUE
+    education_features |> mutate(bachelor = "Education in primary school", faculty = soc), #music = FALSE
+    soc_features |> mutate(bachelor = "Sociology", faculty = soc), #music = FALSE
     
     
     #humanities
@@ -173,7 +179,7 @@ final_data |>                    # Start with awards.
     x = "Valence",
     y = "Energy",
     title = "Top 5 songs for different bachelors",
-    colour = "Bachelor"
+    #colour = "Bachelor"
   )
 ```
 
