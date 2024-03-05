@@ -46,6 +46,7 @@ ce_features = get_playlist_audio_features("","0ZgkUJVQ5FjavIZBp7zDK7") #1
 id_features = get_playlist_audio_features("","01HKzQnzQ5XLn5OefshdIx") #1
 me_features = get_playlist_audio_features("","1kZBSsmIMAUocJgM6Dm32F") #1
 se_features = get_playlist_audio_features("","4jD1Ua5umx6PTvqhPxD6Qg") #1
+me_features_2 = get_playlist_audio_features("","2yIbLUOhrdCSnYJJqUIC9l") #2
 
 
 #social sciences
@@ -89,6 +90,7 @@ final_data <-
     id_features |> mutate(bachelor = "Industrial engineering", faculty = tech),
     me_features |> mutate(bachelor = "Mechanical engineering", faculty = tech),
     se_features |> mutate(bachelor = "Software engineering", faculty = tech), #music = FALSE
+    me_features_2 |> mutate(bachelor = "Mechanical engineering", faculty = tech), #music = FALSE
     
     #social sciences
     cs_features |> mutate(bachelor = "Communication science", faculty = soc),
@@ -130,8 +132,8 @@ final_data |>                    # Start with awards.
     aes(
       x = valence,
       y = energy,
-      #size = loudness,
-      colour = bachelor
+      size = loudness,
+      colour = faculty
     )
   ) +
   geom_point() +              # Scatter plot.
@@ -185,6 +187,11 @@ final_data |>                    # Start with awards.
 
 ***
 This is a temporary graph that shows all the data I have incorperated in my corpus untill now. I have more data to incorperate (but this takes a lot of time) and I keep receiving more data through google forms and the canvas discussions. For now this is the layout and format I have chosen to use. On the x-axis you can see the valence and on the y-axis the energy of the songs. The songs plotted are the top 5 songs of many peers and friends, the colors are divided based on their bachelor and the graphs are divided based on faculty/direction of the bachelor. This might change in the future but I still have not decided how to split all bachelors/data. 
+
+
+### Split visualisation
+
+
 
 ### Statistical analysis
 
