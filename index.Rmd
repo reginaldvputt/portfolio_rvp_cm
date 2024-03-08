@@ -29,6 +29,100 @@ Sys.setenv(SPOTIFY_CLIENT_SECRET = secret)
 access_token <- get_spotify_access_token()
 ```
 
+```{r circshift}
+library(tidyverse)
+library(spotifyr)
+library(compmus)
+
+circshift <- function(v, n) {
+  if (n == 0) v else c(tail(v, n), head(v, -n))
+}
+
+#      C     C#    D     Eb    E     F     F#    G     Ab    A     Bb    B
+major_chord <-
+  c(   1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    0,    0)
+minor_chord <-
+  c(   1,    0,    0,    1,    0,    0,    0,    1,    0,    0,    0,    0)
+seventh_chord <-
+  c(   1,    0,    0,    0,    1,    0,    0,    1,    0,    0,    1,    0)
+
+major_key <-
+  c(6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88)
+minor_key <-
+  c(6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17)
+
+chord_templates <-
+  tribble(
+    ~name, ~template,
+    "Gb:7", circshift(seventh_chord, 6),
+    "Gb:maj", circshift(major_chord, 6),
+    "Bb:min", circshift(minor_chord, 10),
+    "Db:maj", circshift(major_chord, 1),
+    "F:min", circshift(minor_chord, 5),
+    "Ab:7", circshift(seventh_chord, 8),
+    "Ab:maj", circshift(major_chord, 8),
+    "C:min", circshift(minor_chord, 0),
+    "Eb:7", circshift(seventh_chord, 3),
+    "Eb:maj", circshift(major_chord, 3),
+    "G:min", circshift(minor_chord, 7),
+    "Bb:7", circshift(seventh_chord, 10),
+    "Bb:maj", circshift(major_chord, 10),
+    "D:min", circshift(minor_chord, 2),
+    "F:7", circshift(seventh_chord, 5),
+    "F:maj", circshift(major_chord, 5),
+    "A:min", circshift(minor_chord, 9),
+    "C:7", circshift(seventh_chord, 0),
+    "C:maj", circshift(major_chord, 0),
+    "E:min", circshift(minor_chord, 4),
+    "G:7", circshift(seventh_chord, 7),
+    "G:maj", circshift(major_chord, 7),
+    "B:min", circshift(minor_chord, 11),
+    "D:7", circshift(seventh_chord, 2),
+    "D:maj", circshift(major_chord, 2),
+    "F#:min", circshift(minor_chord, 6),
+    "A:7", circshift(seventh_chord, 9),
+    "A:maj", circshift(major_chord, 9),
+    "C#:min", circshift(minor_chord, 1),
+    "E:7", circshift(seventh_chord, 4),
+    "E:maj", circshift(major_chord, 4),
+    "G#:min", circshift(minor_chord, 8),
+    "B:7", circshift(seventh_chord, 11),
+    "B:maj", circshift(major_chord, 11),
+    "D#:min", circshift(minor_chord, 3)
+  )
+
+key_templates <-
+  tribble(
+    ~name, ~template,
+    "Gb:maj", circshift(major_key, 6),
+    "Bb:min", circshift(minor_key, 10),
+    "Db:maj", circshift(major_key, 1),
+    "F:min", circshift(minor_key, 5),
+    "Ab:maj", circshift(major_key, 8),
+    "C:min", circshift(minor_key, 0),
+    "Eb:maj", circshift(major_key, 3),
+    "G:min", circshift(minor_key, 7),
+    "Bb:maj", circshift(major_key, 10),
+    "D:min", circshift(minor_key, 2),
+    "F:maj", circshift(major_key, 5),
+    "A:min", circshift(minor_key, 9),
+    "C:maj", circshift(major_key, 0),
+    "E:min", circshift(minor_key, 4),
+    "G:maj", circshift(major_key, 7),
+    "B:min", circshift(minor_key, 11),
+    "D:maj", circshift(major_key, 2),
+    "F#:min", circshift(minor_key, 6),
+    "A:maj", circshift(major_key, 9),
+    "C#:min", circshift(minor_key, 1),
+    "E:maj", circshift(major_key, 4),
+    "G#:min", circshift(minor_key, 8),
+    "B:maj", circshift(major_key, 11),
+    "D#:min", circshift(minor_key, 3)
+  )
+
+
+```
+
 ```{r loading_playlists, echo=FALSE}
 #science
 pb_features = get_playlist_audio_features("","1dDP0J8kZlyQJ1kw2heuqN") #1
@@ -110,6 +204,232 @@ final_data <-
   )
 ```
 
+### Key analysis
+
+#### Low
+```{r key analysis}
+#Lowest valence song
+
+low_valence <-
+  get_tidy_audio_analysis("0oL9JFFf33CZP47Kg30U7e") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      )
+  )
+
+low_valence |> 
+  compmus_match_pitch_template(
+    key_templates,         # Change to chord_templates if desired
+    method = "euclidean",  # Try different distance metrics
+    norm = "manhattan"     # Try different norms
+  ) |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "") +
+  ggtitle("Lowest valence song") +
+  theme(plot.caption = element_text(hjust = 0, margin = margin(t = 10))) +
+  labs(caption = "This is the song with the lowest valence of the group 'Faculty of Science'.\n It is shown here in the form of a keygram")
+
+```
+
+#### High
+```{r}
+
+#Highest valence song
+
+high_valence <-
+  get_tidy_audio_analysis("3gY6tiCNsuVi6s8kPV6aQg") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      )
+  )
+
+high_valence |> 
+  compmus_match_pitch_template(
+    key_templates,         # Change to chord_templates if desired
+    method = "euclidean",  # Try different distance metrics
+    norm = "manhattan"     # Try different norms
+  ) |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "") +
+  ggtitle("Highest valence song") +
+  theme(plot.caption = element_text(hjust = 0, margin = margin(t = 10))) +
+  labs(caption = "This is the song with the higest valence of the group 'Faculty of Science'.\n It is shown here in the form of a keygram")
+
+```
+
+#### Random
+```{r average}
+random_average <-
+  get_tidy_audio_analysis("6SG8lh7fWQ2bahP5WBYePn") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      )
+  )
+
+random_average |> 
+  compmus_match_pitch_template(
+    key_templates,         # Change to chord_templates if desired
+    method = "euclidean",  # Try different distance metrics
+    norm = "manhattan"     # Try different norms
+  ) |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "") +
+  ggtitle("Random song") +
+  theme(plot.caption = element_text(hjust = 0, margin = margin(t = 10))) +
+  labs(caption = "This is a random song of the group 'Faculty of Science'.\n It is shown here in the form of a keygram")
+
+```
+ 
+***
+The keygrams are quit interesting to compare. The lowest valence song shows a vertical band between 150 and 200 seconds. Meaning that there are more keys being used in that time period compared to the rest. Throughout the song the keys that are used the majority of the time are kind of the same. but the quantity/certainty of it differs a bit.
+For the highest valence song it's quite different. there are not a lot of keys that are used but the keys that are used are really stable though the whole song. For the random song there is a lot of uniformity throught the song, but some slight differences such as in the intro and 2 (probably) bridges of sort.
+
+### Chord analysis
+
+#### Low
+```{r chord_analysis, echo=FALSE}
+#Lowest valence song
+# Chord analysis tab
+low_valence <-
+  get_tidy_audio_analysis("0oL9JFFf33CZP47Kg30U7e") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      )
+  )
+
+low_valence |> 
+  compmus_match_pitch_template(
+    chord_templates,         # Change to chord_templates if desired
+    method = "euclidean",  # Try different distance metrics
+    norm = "manhattan"     # Try different norms
+  ) |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "") +
+  ggtitle("Lowest valence song") +
+  theme(plot.caption = element_text(hjust = 0, margin = margin(t = 10))) +
+  labs(caption = "This is the song with the lowest valence of the group 'Faculty of Science'.\n It is shown here in the form of a chordogram.")
+
+```
+
+#### High
+```{r}
+
+#Highest valence song
+
+high_valence <-
+  get_tidy_audio_analysis("3gY6tiCNsuVi6s8kPV6aQg") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      )
+  )
+
+high_valence |> 
+  compmus_match_pitch_template(
+    chord_templates,         # Change to chord_templates if desired
+    method = "euclidean",  # Try different distance metrics
+    norm = "manhattan"     # Try different norms
+  ) |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "") +
+  ggtitle("Highest valence song") +
+  theme(plot.caption = element_text(hjust = 0, margin = margin(t = 10))) +
+  labs(caption = "This is the song with the higest valence of the group 'Faculty of Science'.\n It is shown here in the form of a chordogram.")
+
+```
+
+#### Random
+```{r}
+random_average <-
+  get_tidy_audio_analysis("6SG8lh7fWQ2bahP5WBYePn") |>
+  compmus_align(sections, segments) |>
+  select(sections) |>
+  unnest(sections) |>
+  mutate(
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      )
+  )
+
+random_average |> 
+  compmus_match_pitch_template(
+    chord_templates,         # Change to chord_templates if desired
+    method = "euclidean",  # Try different distance metrics
+    norm = "manhattan"     # Try different norms
+  ) |>
+  ggplot(
+    aes(x = start + duration / 2, width = duration, y = name, fill = d)
+  ) +
+  geom_tile() +
+  scale_fill_viridis_c(guide = "none") +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "") +
+  ggtitle("Random song") +
+  theme(plot.caption = element_text(hjust = 0, margin = margin(t = 10))) +
+  labs(caption = "This is a random song of the group 'Faculty of Science'.\n It is shown here in the form of a chordogram.")
+
+```
+
+
+***
+
+There seem to be a very big overlap between chords used in all three songs. Almost (if not all) chords seem to be the same (if looking at the blue-est parts of the chordgram). This surprised me since the valence of these songs is quite different and not all songs are of the same genre (so not just generic pop songs). 
 
 ### Introduction
 Welcome to my portfolio,
@@ -119,6 +439,7 @@ I'm Reginald van Putt and this is my portfolio for the course Computational Musi
 *Why?*
 
 The reason why I wanted to investigate this is because I quite often ask people about their music taste and I have done a few courses from different faculties and it seemed to me that different faculties (i.e. FNWI vs AI) have quite different tastes in music. So I that's why I wanted to analyse more data and see if there is a significant difference.
+
 
 ### Visualization
 
@@ -189,7 +510,9 @@ final_data |>                    # Start with awards.
 This is a temporary graph that shows all the data I have incorperated in my corpus untill now. I have more data to incorperate (but this takes a lot of time) and I keep receiving more data through google forms and the canvas discussions. For now this is the layout and format I have chosen to use. On the x-axis you can see the valence and on the y-axis the energy of the songs. The songs plotted are the top 5 songs of many peers and friends, the colors are divided based on their bachelor and the graphs are divided based on faculty/direction of the bachelor. This might change in the future but I still have not decided how to split all bachelors/data. 
 
 
+
 ### Split visualisation
+
 
 
 
@@ -228,6 +551,7 @@ print(tukey_result_1)
 #print(statistics)
 
 ```
+
 
 ### Chromagram
 
@@ -298,6 +622,7 @@ normal_song |>
 The reason that the left song has lower energy and valence might be due to the lower frequency of notes, it looks like the amount of notes is quite a bit lower then in the right song / average song. Secondly the valence might be lower because of the fact that the outlier song is mostly minor while the average song is mostly major (according to spotify). Which you might be able to see looking at the chords played througout the song.
 
 P.S. I know that the graphs are not of the same size, I have spend an hour and a half trying to fix that and I could not do it. I'm not planning on using chromagrams in my final portfolio if not manditory so I did not want to spend more time then 2 hours on fixing the sizes of graphs.
+
 
 ### Discussion/conclusion
 
