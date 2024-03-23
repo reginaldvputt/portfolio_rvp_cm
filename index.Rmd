@@ -15,9 +15,12 @@ library(readr)
 library(lubridate)
 library(ggplot2)
 library(tidyverse)
+library(tidymodels)
 library(spotifyr)
 library(compmus)
 library(agricolae)
+library(ggdendro)
+library(heatmaply)
 
 # Set default chunk options for all plots
 knitr::opts_chunk$set(fig.width = 5, fig.height = 4)
@@ -161,9 +164,9 @@ art_features = get_playlist_audio_features("","4eRCLFaLG2PcT3RcJpEVA5") #1
 ```{r faculty_dividing, echo=FALSE}
 sci = "Faculty of Science"
 hum = "Faculty of Humanities"
-med = "Faculty of Medicine"
 tech = "Technical University studies"
 soc = "Social and Behavior studies"
+med = "Faculty of Medicine"
 
 final_data <-
   bind_rows(
@@ -205,6 +208,98 @@ final_data <-
 
 
 New Assignment
+=======================================================================
+
+Row  {.tabset}
+-----------------------------------------------------------------------
+### Dunno ngl
+
+```{r}
+final_data_filtered <- final_data[-12, ]
+final_data_filtered <- filter(final_data_filtered, faculty == "Faculty of Science")
+
+halloween <-
+  #get_playlist_audio_features("bnfcollection", "1vsoLSK3ArkpaIHmUaF02C") |>
+  final_data_filtered |>
+  add_audio_analysis() |>
+  mutate(
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) |>
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
+  mutate_at(vars(pitches, timbre), map, bind_rows) |>
+  unnest(cols = c(pitches, timbre))
+
+halloween_juice <-
+  recipe(
+    track.name ~
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration +
+      C + `C#|Db` + D + `D#|Eb` +
+      E + `F` + `F#|Gb` + G +
+      `G#|Ab` + A + `A#|Bb` + B +
+      c01 + c02 + c03 + c04 + c05 + c06 +
+      c07 + c08 + c09 + c10 + c11 + c12,
+    data = halloween
+  ) |>
+  step_center(all_predictors()) |>
+  step_scale(all_predictors()) |> 
+  # step_range(all_predictors()) |> 
+  prep(halloween |> mutate(track.name = str_trunc(track.name, 20))) |>
+  juice() |>
+  column_to_rownames("track.name")
+
+
+
+
+
+
+# Define colors for each faculty category
+color_mapping <- c("Faculty of Science" = "blue", 
+                   "Faculty of Humanities" = "green", 
+                   "Technical University studies" = "red", 
+                   "Social and Behavior studies" = "purple")
+
+# Create a color vector based on the "faculty" variable
+color_vector <- factor(final_data_filtered$faculty, levels = names(color_mapping))
+
+halloween_dist <- dist(halloween_juice, method = "euclidean")
+
+# Plot the dendrogram with colors
+halloween_dendro <- halloween_dist |> 
+  hclust(method = "complete") |> # Try single, average, and complete.
+  dendro_data()
+
+# Create a data frame for plotting with colors
+plot_data <- data.frame(halloween_dendro$segments, color = rep(color_vector, each = nrow(halloween_dendro$segments)))
+
+ggplot(plot_data) +
+  geom_segment(aes(x = x, y = y, xend = xend, yend = yend, color = color), size = 1.5) +
+  scale_color_manual(values = color_mapping) +
+  theme_minimal()
+
+```
+
+
+Previous Assignment
 =======================================================================
 
 Row  {.tabset}
