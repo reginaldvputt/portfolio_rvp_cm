@@ -12,6 +12,7 @@ date: "2024-02-21"
 # Loading in libraries
 library(flexdashboard)
 library(readr)
+library(dendextend)
 library(lubridate)
 library(ggplot2)
 library(tidyverse)
@@ -206,179 +207,11 @@ final_data <-
   )
 ```
 
-
-New Assignment
+Introduction
 =======================================================================
 
 Row  {.tabset}
 -----------------------------------------------------------------------
-### Dunno ngl
-
-```{r}
-final_data_filtered <- final_data[-12, ]
-final_data_filtered <- filter(final_data_filtered, faculty == "Faculty of Science")
-
-halloween <-
-  #get_playlist_audio_features("bnfcollection", "1vsoLSK3ArkpaIHmUaF02C") |>
-  final_data_filtered |>
-  add_audio_analysis() |>
-  mutate(
-    segments = map2(segments, key, compmus_c_transpose),
-    pitches =
-      map(segments,
-        compmus_summarise, pitches,
-        method = "mean", norm = "manhattan"
-      ),
-    timbre =
-      map(
-        segments,
-        compmus_summarise, timbre,
-        method = "mean"
-      )
-  ) |>
-  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
-  mutate_at(vars(pitches, timbre), map, bind_rows) |>
-  unnest(cols = c(pitches, timbre))
-
-halloween_juice <-
-  recipe(
-    track.name ~
-      danceability +
-      energy +
-      loudness +
-      speechiness +
-      acousticness +
-      instrumentalness +
-      liveness +
-      valence +
-      tempo +
-      duration +
-      C + `C#|Db` + D + `D#|Eb` +
-      E + `F` + `F#|Gb` + G +
-      `G#|Ab` + A + `A#|Bb` + B +
-      c01 + c02 + c03 + c04 + c05 + c06 +
-      c07 + c08 + c09 + c10 + c11 + c12,
-    data = halloween
-  ) |>
-  step_center(all_predictors()) |>
-  step_scale(all_predictors()) |> 
-  # step_range(all_predictors()) |> 
-  prep(halloween |> mutate(track.name = str_trunc(track.name, 20))) |>
-  juice() |>
-  column_to_rownames("track.name")
-
-
-
-
-
-
-# Define colors for each faculty category
-color_mapping <- c("Faculty of Science" = "blue", 
-                   "Faculty of Humanities" = "green", 
-                   "Technical University studies" = "red", 
-                   "Social and Behavior studies" = "purple")
-
-# Create a color vector based on the "faculty" variable
-color_vector <- factor(final_data_filtered$faculty, levels = names(color_mapping))
-
-halloween_dist <- dist(halloween_juice, method = "euclidean")
-
-# Plot the dendrogram with colors
-halloween_dendro <- halloween_dist |> 
-  hclust(method = "complete") |> # Try single, average, and complete.
-  dendro_data()
-
-# Create a data frame for plotting with colors
-plot_data <- data.frame(halloween_dendro$segments, color = rep(color_vector, each = nrow(halloween_dendro$segments)))
-
-ggplot(plot_data) +
-  geom_segment(aes(x = x, y = y, xend = xend, yend = yend, color = color), size = 1.5) +
-  scale_color_manual(values = color_mapping) +
-  theme_minimal()
-
-```
-
-
-Previous Assignment
-=======================================================================
-
-Row  {.tabset}
------------------------------------------------------------------------
-### Histograms of Tempi
-
-#### Low valence
-```{r low_tempi}
-
-#filtered_data <- filter(final_data, faculty == "Faculty of Science")
-
-low_valence_tempo <-
-  get_tidy_audio_analysis("0oL9JFFf33CZP47Kg30U7e") |> 
-  select(segments) |>
-  unnest(segments)
-
-low_valence_tempo |>
-  mutate(loudness_max_time = start + loudness_max_time) |>
-  arrange(loudness_max_time) |>
-  mutate(delta_loudness = loudness_max - lag(loudness_max)) |>
-  ggplot(aes(x = loudness_max_time, y = pmax(0, delta_loudness))) +
-  geom_line() +
-  xlim(0, 30) +
-  theme_minimal() +
-  labs(x = "Time (s)", y = "Novelty")
-
-```
-
-#### High valence
-```{r high_tempi}
-
-#filtered_data <- filter(final_data, faculty == "Faculty of Science")
-
-high_valence_tempo <-
-  get_tidy_audio_analysis("3gY6tiCNsuVi6s8kPV6aQg") |> 
-  select(segments) |>
-  unnest(segments)
-
-high_valence_tempo |>
-  mutate(loudness_max_time = start + loudness_max_time) |>
-  arrange(loudness_max_time) |>
-  mutate(delta_loudness = loudness_max - lag(loudness_max)) |>
-  ggplot(aes(x = loudness_max_time, y = pmax(0, delta_loudness))) +
-  geom_line() +
-  xlim(0, 30) +
-  theme_minimal() +
-  labs(x = "Time (s)", y = "Novelty")
-
-```
-
-### Tempogram
-
-#### Low valence
-```{r low_tempogram}
-low_valence_tempogram <- get_tidy_audio_analysis("0oL9JFFf33CZP47Kg30U7e")
-low_valence_tempogram |> 
-  tempogram(window_size = 8, hop_size = 1, cyclic = TRUE) |>
-  ggplot(aes(x = time, y = bpm, fill = power)) +
-  geom_raster() +
-  scale_fill_viridis_c(guide = "none") +
-  labs(x = "Time (s)", y = "Tempo (BPM)") +
-  theme_classic()
-
-```
-
-#### High valence
-```{r high_tempogram}
-high_valence_tempogram <- get_tidy_audio_analysis("3gY6tiCNsuVi6s8kPV6aQg")
-high_valence_tempogram |> 
-  tempogram(window_size = 8, hop_size = 1, cyclic = TRUE) |>
-  ggplot(aes(x = time, y = bpm, fill = power)) +
-  geom_raster() +
-  scale_fill_viridis_c(guide = "none") +
-  labs(x = "Time (s)", y = "Tempo (BPM)") +
-  theme_classic()
-
-```
-
-# Introduction
 Welcome to my portfolio,
 
 I'm Reginald van Putt and this is my portfolio for the course Computational Musicology (UvA). In this portfolio I will investigate a corpus that I have created with help of my peers and friends. The corpus exists off the top 5 songs of people from all kinds of bachelors. With this corpus I'm trying to investigate whether or not there is a significant difference in study directions in terms of music taste. Specifically looking at the valence, energy and genre of songs. 
@@ -457,7 +290,6 @@ final_data |>                    # Start with awards.
     #colour = "Bachelor"
   )
 ```
-
 
 ***
 
@@ -798,7 +630,202 @@ random_average |>
 
 There seem to be a very big overlap between chords used in all three songs. Almost (if not all) chords seem to be the same (if looking at the blue-est parts of the chordgram). This surprised me since the valence of these songs is quite different and not all songs are of the same genre (so not just generic pop songs). 
 
-# Discussion/conclusion
+
+Tempo analysis
+=======================================================================
+
+Row  {.tabset}
+-----------------------------------------------------------------------
+### Novelty graph of loudness
+
+#### Low valence
+```{r low_tempi}
+
+#filtered_data <- filter(final_data, faculty == "Faculty of Science")
+
+low_valence_tempo <-
+  get_tidy_audio_analysis("0oL9JFFf33CZP47Kg30U7e") |> 
+  select(segments) |>
+  unnest(segments)
+
+low_valence_tempo |>
+  mutate(loudness_max_time = start + loudness_max_time) |>
+  arrange(loudness_max_time) |>
+  mutate(delta_loudness = loudness_max - lag(loudness_max)) |>
+  ggplot(aes(x = loudness_max_time, y = pmax(0, delta_loudness))) +
+  geom_line() +
+  xlim(0, 180) +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "Novelty")
+
+```
+
+#### High valence
+```{r high_tempi}
+
+#filtered_data <- filter(final_data, faculty == "Faculty of Science")
+
+high_valence_tempo <-
+  get_tidy_audio_analysis("3gY6tiCNsuVi6s8kPV6aQg") |> 
+  select(segments) |>
+  unnest(segments)
+
+high_valence_tempo |>
+  mutate(loudness_max_time = start + loudness_max_time) |>
+  arrange(loudness_max_time) |>
+  mutate(delta_loudness = loudness_max - lag(loudness_max)) |>
+  ggplot(aes(x = loudness_max_time, y = pmax(0, delta_loudness))) +
+  geom_line() +
+  xlim(0, 180) +
+  theme_minimal() +
+  labs(x = "Time (s)", y = "Novelty")
+
+```
+
+***
+Here you see two songs of the corpus, more specifically two songs out of the Faculty of Science category. The first graph is a novelty graph of loudness of the song with the lowest valence and the second graph is a novelty graph of loudness of the song with the highest valence (both according to spotify's api). 
+### Tempogram
+
+#### Low valence
+```{r low_tempogram}
+low_valence_tempogram <- get_tidy_audio_analysis("0oL9JFFf33CZP47Kg30U7e")
+low_valence_tempogram |> 
+  tempogram(window_size = 8, hop_size = 1, cyclic = TRUE) |>
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
+
+```
+
+#### High valence
+```{r high_tempogram}
+high_valence_tempogram <- get_tidy_audio_analysis("3gY6tiCNsuVi6s8kPV6aQg")
+high_valence_tempogram |> 
+  tempogram(window_size = 8, hop_size = 1, cyclic = TRUE) |>
+  ggplot(aes(x = time, y = bpm, fill = power)) +
+  geom_raster() +
+  scale_fill_viridis_c(guide = "none") +
+  labs(x = "Time (s)", y = "Tempo (BPM)") +
+  theme_classic()
+
+```
+
+Dendrogram
+=======================================================================
+
+Row  {.tabset}
+-----------------------------------------------------------------------
+### Not done yet, welp (it has been around 6 hours already :')
+
+```{r}
+final_data_filtered <- final_data[-12, ]
+#final_data_filtered <- filter(final_data_filtered, faculty == "Faculty of Science")
+
+halloween <-
+  #get_playlist_audio_features("bnfcollection", "1vsoLSK3ArkpaIHmUaF02C") |>
+  final_data_filtered |>
+  add_audio_analysis() |>
+  mutate(
+    segments = map2(segments, key, compmus_c_transpose),
+    pitches =
+      map(segments,
+        compmus_summarise, pitches,
+        method = "mean", norm = "manhattan"
+      ),
+    timbre =
+      map(
+        segments,
+        compmus_summarise, timbre,
+        method = "mean"
+      )
+  ) |>
+  mutate(pitches = map(pitches, compmus_normalise, "clr")) |>
+  mutate_at(vars(pitches, timbre), map, bind_rows) |>
+  unnest(cols = c(pitches, timbre))
+
+halloween_juice <-
+  recipe(
+    track.name ~
+      danceability +
+      energy +
+      loudness +
+      speechiness +
+      acousticness +
+      instrumentalness +
+      liveness +
+      valence +
+      tempo +
+      duration +
+      C + `C#|Db` + D + `D#|Eb` +
+      E + `F` + `F#|Gb` + G +
+      `G#|Ab` + A + `A#|Bb` + B +
+      c01 + c02 + c03 + c04 + c05 + c06 +
+      c07 + c08 + c09 + c10 + c11 + c12,
+    data = halloween
+  ) |>
+  step_center(all_predictors()) |>
+  step_scale(all_predictors()) |> 
+  # step_range(all_predictors()) |> 
+  prep(halloween |> mutate(track.name = str_trunc(track.name, 20))) |>
+  juice() |>
+  column_to_rownames("track.name")
+
+
+# Define colors for each faculty category
+color_mapping <- c("Faculty of Science" = "blue", 
+                   "Faculty of Humanities" = "green", 
+                   "Technical University studies" = "red", 
+                   "Social and Behavior studies" = "purple")
+
+# Create a color vector based on the "faculty" variable
+color_vector <- factor(final_data_filtered$faculty, levels = names(color_mapping))
+
+
+#color_vector <- color_mapping[final_data_filtered$faculty]
+
+halloween_dist <- dist(halloween_juice, method = "euclidean")
+
+# # Plot the dendrogram with colors
+# halloween_dendro <- halloween_dist |> 
+#   hclust(method = "complete") |> # Try single, average, and complete.
+#   dendro_data()
+
+
+#testing
+colors <- rainbow(length(unique(color_mapping)))
+
+halloween_dendro <- halloween_dist |> 
+  hclust(method = "complete") |> # Try single, average, and complete.
+  as.dendrogram()  # Convert to dendrogram object
+
+ordered_colors <- color_vector[order.dendrogram(halloween_dendro)]
+dend_colored <- color_branches(halloween_dendro, k = length(unique(color_mapping)), col = colors[ordered_colors])
+plot(dend_colored)
+
+
+# # Create a data frame for plotting with colors
+# plot_data <- data.frame(halloween_dendro$segments, color = rep(color_vector, each = nrow(halloween_dendro$segments)))
+# 
+# # Plot the dendrogram with colors and song titles on x-axis
+# ggplot(plot_data) +
+#   geom_segment(aes(x = x, y = y, xend = xend, yend = yend, color = color), size = 1.5) +
+#   scale_color_manual(values = color_mapping) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+
+```
+
+### Explanation of the graph
+
+I have not got this graph to work yet, i was planning on showing multiple faculties seperated by colour to see how things overlap and are in common but I keep getting crashes and colours not working properly. So for now I only have this for the science faculties. A thing to note is that there are the same amount of clusters then people in this group, which could mean that they all have quite different preferences in songs. However, for some reason in the last code push the song labels have dissapeared and I have not yet found a fix.
+
+Discussion/Conclusion
+=======================================================================
+
+Row  {.tabset}
+-----------------------------------------------------------------------
 
 I have not yet had the time to do a statistic analysis (and I have also not added all the data yet) so I have no clear conclusion yet. For now with the naked eye it seems like there is no significant difference between different groups (excluding the Faculty of Medicine because of the low sample size). 
 
