@@ -193,7 +193,7 @@ final_data <-
     cs_features |> mutate(bachelor = "Communication science", faculty = soc),
     psychology_features |> mutate(bachelor = "Psychology", faculty = soc),
     sw_features |> mutate(bachelor = "Social works", faculty = soc),
-    cs_mmd_features |> mutate(bachelor = "Communication and multimedia design", faculty = soc), #music = TRUE
+    cs_mmd_features |> mutate(bachelor = "Communication & MM design", faculty = soc), #music = TRUE
     education_features |> mutate(bachelor = "Education in primary school", faculty = soc), #music = FALSE
     soc_features |> mutate(bachelor = "Sociology", faculty = soc), #music = FALSE
     
@@ -214,20 +214,13 @@ Row  {.tabset}
 -----------------------------------------------------------------------
 Welcome to my portfolio,
 
-I'm Reginald van Putt and this is my portfolio for the course Computational Musicology (UvA). In this portfolio I will investigate a corpus that I have created with help of my peers and friends. The corpus exists off the top 5 songs of people from all kinds of bachelors. With this corpus I'm trying to investigate whether or not there is a significant difference in study directions in terms of music taste. Specifically looking at the valence, energy and genre of songs. 
+I'm Reginald van Putt and this is my portfolio for the course Computational Musicology (UvA). In this portfolio I will investigate a corpus that I have created with help of my peers and friends. The corpus exists off the top 5 songs of people from all kinds of bachelors. With this corpus I'm trying to investigate whether or not there is a significant difference in study directions in terms of music taste. Specifically looking at the valence, energy and loudness. 
 
 *Why?*
 
-The reason why I wanted to investigate this is because I quite often ask people about their music taste and I have done a few courses from different faculties and it seemed to me that different faculties (i.e. FNWI vs AI) have quite different tastes in music. So I that's why I wanted to analyse more data and see if there is a significant difference.
+The reason why I wanted to investigate this is because I quite often ask people about their music taste and I have done a few courses from different faculties and it seemed to me that different faculties (i.e. FNWI vs AI) have quite different tastes in music. So I that's why I wanted to analyse more data and see if there is a significant difference. I initially wanted to also include genre in the analysis. But this turned out to be a lot more complicated then I thought initially, hence i dropped this part of the analysis. 
 
-
-Visualizations
-=======================================================================
-
-Row  {.tabset}
------------------------------------------------------------------------
-
-### Split visualisation
+The graph underneath this shows all the data I have incorporated in my corpus. On the x-axis you can see the valence and on the y-axis the energy of the songs, the size of the dots are correlated to the loudness of the songs. The songs plotted are the top 5 songs of many peers and friends, the colors are divided based on the faculty and the graphs are also divided based on faculty/direction of the bachelors of the participants.
 
 ```{r make_plot}
 final_data |>                    # Start with awards.
@@ -291,46 +284,306 @@ final_data |>                    # Start with awards.
   )
 ```
 
-***
 
-This is a temporary graph that shows all the data I have incorperated in my corpus untill now. I have more data to incorperate (but this takes a lot of time) and I keep receiving more data through google forms and the canvas discussions. For now this is the layout and format I have chosen to use. On the x-axis you can see the valence and on the y-axis the energy of the songs. The songs plotted are the top 5 songs of many peers and friends, the colors are divided based on their bachelor and the graphs are divided based on faculty/direction of the bachelor. This might change in the future but I still have not decided how to split all bachelors/data. 
+Main corpus visualization
+=======================================================================
 
-### Statistical analysis
+Row  {.tabset}
+-----------------------------------------------------------------------
 
-```{r statistcal_analysis}
+### Faculty of Humanities
+```{r}
+final_data_humanities <- filter(final_data, faculty == "Faculty of Humanities")
 
-#final_data %>%
-  #group_by(faculty) %>%
-  #select(valence, energy, faculty, bachelor) %>%
-  #summarize(mean_valence = mean(valence), mean_energy = mean(energy), sd_valence = sd(valence), sd_energy = sd(energy))
-
-anova_result_1 <- aov(energy ~ faculty, data = final_data)
-anova_result_2 <- aov(valence ~ faculty, data = final_data)
-
-#summary(anova_result_1)
-#summary(anova_result_2)
-
-#tukey_result_1 <- HSD.test(anova_result_1, "faculty", group = TRUE) #energy
-tukey_result_1 <- HSD.test(anova_result_2, "faculty", group = TRUE) #valence
-
-# Access the "statistics" component
-statistics <- tukey_result_1$statistics
-
-# Access the "parameters" component
-parameters <- tukey_result_1$parameters
-
-# Access the "means" component
-means <- tukey_result_1$means
-
-# Access the "groups" component
-groups <- tukey_result_1$groups
-
-print(tukey_result_1)
-#print(groups)
-#print(statistics)
+final_data_humanities |>                    # Start with awards.
+  mutate(
+    mode = ifelse(mode == 0, "Minor", "Major")
+  ) |>
+  ggplot(                     # Set up the plot.
+    aes(
+      x = valence,
+      y = energy,
+      size = loudness,
+      colour = bachelor
+    )
+  ) +
+  geom_point() +              # Scatter plot.
+  geom_rug(linewidth = 0.1) + # Add 'fringes' to show data distribution.
+  geom_text(                  # Add text labels from above.
+    aes(
+      x = valence,
+      y = energy,
+      label = label
+    ),
+    data = 
+      tibble(
+        label = c("", ""), #top and bottom labels
+        category = c("Edisons", "Grammys"),
+        valence = c(0.104, 0.0339),
+        energy = c(0.992, 0.00166)
+      ),
+    colour = "black",         # Override colour (not mode here).
+    size = 3,                 # Override size (not loudness here).
+    hjust = "left",           # Align left side of label with the point.
+    vjust = "center",         # Align vertical center of label with the point.
+    nudge_x = 0.02            # Nudge the label slightly right.
+  ) +
+  # facet_wrap(~ faculty) +    # Separate charts per playlist.
+  # scale_x_continuous(         # Fine-tune the x axis.
+  #   limits = c(0, 1),
+  #   breaks = c(0, 0.50, 1),   # Use grid-lines for quadrants only.
+  #   minor_breaks = NULL       # Remove 'minor' grid-lines.
+  # ) +
+  scale_y_continuous(         # Fine-tune the y axis in the same way.
+    limits = c(0, 1),
+    breaks = c(0, 0.50, 1),
+    minor_breaks = NULL
+  ) +
+  scale_colour_brewer(        # Use the Color Brewer to choose a palette.
+    type = "qual",            # Qualitative set.
+    palette = "Paired"        # Name of the palette is 'Paired'.
+  ) +
+  scale_size_continuous(      # Fine-tune the sizes of each point.
+    trans = "exp",            # Use an exp transformation to emphasise loud.
+    guide = "none"            # Remove the legend for size.
+  ) +
+  theme_light() +             # Use a simpler theme.
+  labs(                       # Make the titles nice.
+    x = "Valence",
+    y = "Energy",
+    title = "Top 5 songs for different bachelors",
+    colour = "Bachelor"
+  )
 
 ```
 
+
+### Faculty of Science
+```{r}
+final_data_science <- filter(final_data, faculty == "Faculty of Science")
+
+final_data_science |>                    # Start with awards.
+  mutate(
+    mode = ifelse(mode == 0, "Minor", "Major")
+  ) |>
+  ggplot(                     # Set up the plot.
+    aes(
+      x = valence,
+      y = energy,
+      size = loudness,
+      colour = bachelor
+    )
+  ) +
+  geom_point() +              # Scatter plot.
+  geom_rug(linewidth = 0.1) + # Add 'fringes' to show data distribution.
+  geom_text(                  # Add text labels from above.
+    aes(
+      x = valence,
+      y = energy,
+      label = label
+    ),
+    data = 
+      tibble(
+        label = c("", ""), #top and bottom labels
+        category = c("Edisons", "Grammys"),
+        valence = c(0.104, 0.0339),
+        energy = c(0.992, 0.00166)
+      ),
+    colour = "black",         # Override colour (not mode here).
+    size = 3,                 # Override size (not loudness here).
+    hjust = "left",           # Align left side of label with the point.
+    vjust = "center",         # Align vertical center of label with the point.
+    nudge_x = 0.02            # Nudge the label slightly right.
+  ) +
+  # facet_wrap(~ faculty) +    # Separate charts per playlist.
+  # scale_x_continuous(         # Fine-tune the x axis.
+  #   limits = c(0, 1),
+  #   breaks = c(0, 0.50, 1),   # Use grid-lines for quadrants only.
+  #   minor_breaks = NULL       # Remove 'minor' grid-lines.
+  # ) +
+  scale_y_continuous(         # Fine-tune the y axis in the same way.
+    limits = c(0, 1),
+    breaks = c(0, 0.50, 1),
+    minor_breaks = NULL
+  ) +
+  scale_colour_brewer(        # Use the Color Brewer to choose a palette.
+    type = "qual",            # Qualitative set.
+    palette = "Paired"        # Name of the palette is 'Paired'.
+  ) +
+  scale_size_continuous(      # Fine-tune the sizes of each point.
+    trans = "exp",            # Use an exp transformation to emphasise loud.
+    guide = "none"            # Remove the legend for size.
+  ) +
+  theme_light() +             # Use a simpler theme.
+  labs(                       # Make the titles nice.
+    x = "Valence",
+    y = "Energy",
+    title = "Top 5 songs for different bachelors",
+    colour = "Bachelor"
+  )
+```
+
+
+### Social and Behavior Studies
+```{r}
+final_data_sb <- filter(final_data, faculty == "Social and Behavior studies")
+
+final_data_sb |>                    # Start with awards.
+  mutate(
+    mode = ifelse(mode == 0, "Minor", "Major")
+  ) |>
+  ggplot(                     # Set up the plot.
+    aes(
+      x = valence,
+      y = energy,
+      size = loudness,
+      colour = bachelor
+    )
+  ) +
+  geom_point() +              # Scatter plot.
+  geom_rug(linewidth = 0.1) + # Add 'fringes' to show data distribution.
+  geom_text(                  # Add text labels from above.
+    aes(
+      x = valence,
+      y = energy,
+      label = label
+    ),
+    data = 
+      tibble(
+        label = c("", ""), #top and bottom labels
+        category = c("Edisons", "Grammys"),
+        valence = c(0.104, 0.0339),
+        energy = c(0.992, 0.00166)
+      ),
+    colour = "black",         # Override colour (not mode here).
+    size = 3,                 # Override size (not loudness here).
+    hjust = "left",           # Align left side of label with the point.
+    vjust = "center",         # Align vertical center of label with the point.
+    nudge_x = 0.02            # Nudge the label slightly right.
+  ) +
+  # facet_wrap(~ faculty) +    # Separate charts per playlist.
+  # scale_x_continuous(         # Fine-tune the x axis.
+  #   limits = c(0, 1),
+  #   breaks = c(0, 0.50, 1),   # Use grid-lines for quadrants only.
+  #   minor_breaks = NULL       # Remove 'minor' grid-lines.
+  # ) +
+  scale_y_continuous(         # Fine-tune the y axis in the same way.
+    limits = c(0, 1),
+    breaks = c(0, 0.50, 1),
+    minor_breaks = NULL
+  ) +
+  scale_colour_brewer(        # Use the Color Brewer to choose a palette.
+    type = "qual",            # Qualitative set.
+    palette = "Paired"        # Name of the palette is 'Paired'.
+  ) +
+  scale_size_continuous(      # Fine-tune the sizes of each point.
+    trans = "exp",            # Use an exp transformation to emphasise loud.
+    guide = "none"            # Remove the legend for size.
+  ) +
+  theme_light() +             # Use a simpler theme.
+  labs(                       # Make the titles nice.
+    x = "Valence",
+    y = "Energy",
+    title = "Top 5 songs for different bachelors",
+    colour = "Bachelor"
+  )
+```
+
+
+### Technical University Studies
+```{r}
+final_data_tu <- filter(final_data, faculty == "Technical University studies")
+
+final_data_tu |>                    # Start with awards.
+  mutate(
+    mode = ifelse(mode == 0, "Minor", "Major")
+  ) |>
+  ggplot(                     # Set up the plot.
+    aes(
+      x = valence,
+      y = energy,
+      size = loudness,
+      colour = bachelor
+    )
+  ) +
+  geom_point() +              # Scatter plot.
+  geom_rug(linewidth = 0.1) + # Add 'fringes' to show data distribution.
+  geom_text(                  # Add text labels from above.
+    aes(
+      x = valence,
+      y = energy,
+      label = label
+    ),
+    data = 
+      tibble(
+        label = c("", ""), #top and bottom labels
+        category = c("Edisons", "Grammys"),
+        valence = c(0.104, 0.0339),
+        energy = c(0.992, 0.00166)
+      ),
+    colour = "black",         # Override colour (not mode here).
+    size = 3,                 # Override size (not loudness here).
+    hjust = "left",           # Align left side of label with the point.
+    vjust = "center",         # Align vertical center of label with the point.
+    nudge_x = 0.02            # Nudge the label slightly right.
+  ) +
+  # facet_wrap(~ faculty) +    # Separate charts per playlist.
+  # scale_x_continuous(         # Fine-tune the x axis.
+  #   limits = c(0, 1),
+  #   breaks = c(0, 0.50, 1),   # Use grid-lines for quadrants only.
+  #   minor_breaks = NULL       # Remove 'minor' grid-lines.
+  # ) +
+  scale_y_continuous(         # Fine-tune the y axis in the same way.
+    limits = c(0, 1),
+    breaks = c(0, 0.50, 1),
+    minor_breaks = NULL
+  ) +
+  scale_colour_brewer(        # Use the Color Brewer to choose a palette.
+    type = "qual",            # Qualitative set.
+    palette = "Paired"        # Name of the palette is 'Paired'.
+  ) +
+  scale_size_continuous(      # Fine-tune the sizes of each point.
+    trans = "exp",            # Use an exp transformation to emphasise loud.
+    guide = "none"            # Remove the legend for size.
+  ) +
+  theme_light() +             # Use a simpler theme.
+  labs(                       # Make the titles nice.
+    x = "Valence",
+    y = "Energy",
+    title = "Top 5 songs for different bachelors",
+    colour = "Bachelor"
+  )
+```
+
+
+### Explanation of the graphs
+
+Unfortunatly do to some glitches I was not able to place the text next to the graphs, so here are all the details and explanations of the graphs:
+
+*Faculty of Humanities:*
+
+This graphs shows the valence on the x-axis, energy on the y-axis, the color is correlated to the bachelor type and the size of the dots are correlated to the loudness. A thing to note is that this graph has a lot less bachelors then the other faculty graphs. However each bachelor has more then 1 data set/participant, meaning that this is more then just 2 data sets. This data set is quite similar to most data sets that have this format. You often see a lot of songs in the upper half and left side of the graph. And almost nothing in the bottom right. There is 1 song that does present itself in this corner of the graph, but I kept it inside the data because I do not think I should remove outliers like this in the representations or calculations. 
+
+
+*Faculty of Science:*
+
+This graphs shows the valence on the x-axis, energy on the y-axis, the color is correlated to the bachelor type and the size of the dots are correlated to the loudness. This data set is quite similar to most data sets that have this format. You often see a lot of songs in the upper half and left side of the graph. And almost nothing in the bottom right, however I do see a low amount of songs in the bottom left corner as well, which might mean that the average energy of this faculty lies higher then average datasets due to the lack of songs in the bottom half. 
+
+
+*Social and Behavior Studies:*
+
+This graphs shows the valence on the x-axis, energy on the y-axis, the color is correlated to the bachelor type and the size of the dots are correlated to the loudness. This data set is quite similar to most data sets that have this format. You often see a lot of songs in the upper half and left side of the graph. And almost nothing in the bottom right. This is quite similair to this data set and therefor the data seems quite average. It looks like this data set has a higher average loudness then other faculties. Which might indicate that the energy is also slightly higher, because loudness has a (partial) correlation to energy. 
+
+
+*Technical University Studies:*
+
+This graphs shows the valence on the x-axis, energy on the y-axis, the color is correlated to the bachelor type and the size of the dots are correlated to the loudness. This data set is quite similar to most data sets that have this format. You often see a lot of songs in the upper half and left side of the graph. And almost nothing in the bottom right. This graph however shows little datapoints in the bottom left as well, suggesting a higher average energy level then average datasets and some of the other data sets in this corpus.
+
+Visualizations
+=======================================================================
+
+Row  {.tabset}
+-----------------------------------------------------------------------
 
 ### Chromagram
 
@@ -398,9 +651,7 @@ normal_song |>
 ```
 
 ***
-The reason that the left song has lower energy and valence might be due to the lower frequency of notes, it looks like the amount of notes is quite a bit lower then in the right song / average song. Secondly the valence might be lower because of the fact that the outlier song is mostly minor while the average song is mostly major (according to spotify). Which you might be able to see looking at the chords played througout the song.
-
-P.S. I know that the graphs are not of the same size, I have spend an hour and a half trying to fix that and I could not do it. I'm not planning on using chromagrams in my final portfolio if not manditory so I did not want to spend more time then 2 hours on fixing the sizes of graphs.
+The reason that the left song has lower energy and valence might be due to the lower frequency of notes, it looks like the amount of notes is quite a bit lower then in the right song / average song. Secondly the valence might be lower because of the fact that the outlier song is mostly minor while the average song is mostly major (according to spotify). Which you might be able to see looking at the chords played throughout the song.
 
 
 ### Key analysis
@@ -683,7 +934,12 @@ high_valence_tempo |>
 ```
 
 ***
-Here you see two songs of the corpus, more specifically two songs out of the Faculty of Science category. The first graph is a novelty graph of loudness of the song with the lowest valence and the second graph is a novelty graph of loudness of the song with the highest valence (both according to spotify's api). 
+Here you see two songs of the corpus, more specifically two songs out of the Faculty of Science category. The first graph is a novelty graph of loudness of the song with the lowest valence and the second graph is a novelty graph of loudness of the song with the highest valence (both according to spotify's api). A thing to notice is that the high valence songs is quite a bit more averaged novelty of loudness (quite even over the song) while the low valence song has a lot of really high peaks. The large difference in peaks and lows of the low valence song is because of the fact that this song has a lot of loudness differences to highlight the emotions in the song, which are mostly created by the large portions of no vocals and the sudden piano volume increases. I think that this also explains the low valence. The high valence song is a rap song, the song starts with some adlibs and music and bird sounds, which are extra loud compared to instrumentals in the rest of the song. This explains the peak in loudness at the start. On average, rap songs have pretty even loudness across the songs so that explains the rest of the graph.
+
+Something to note is that both graphs only show 180 seconds of the song, this is due to calculation times and because it would get to messy if the full song got showed.
+
+The 2 songs used are: Rosebud||Man-Made-Sunshine(low valence) and Nas is like||Nas (high valence)
+
 ### Tempogram
 
 #### Low valence
@@ -712,16 +968,21 @@ high_valence_tempogram |>
 
 ```
 
+***
+The tempograms shown above both have the time of the song on the x-axis and the tempo in beats per minute (BPM) in the y-axis. The color shows in a gradient the likeliness of matching of different tempo's (yellow being a higher chance then blue). The first graph shows the same low valence song as in the novelty graph of loudness. This song has a pretty clear line around 85 BPM but also a lot of clutter all over the graph. This is most likely because of the lack of percussion and non consistent singing, making it hard for the algorithm to figure out the tempo. 
+
+The high valence song (also the same as in the novelty graph of loudness) has a pretty clear line around the 95 BPM, and almost no clutter compared to the low valence song. Which is probably because of the same general beat used throughout the whole song. The lines are slightly more blurry at the start and end because the intro and outro are a bit different.
+
 Dendrogram
 =======================================================================
 
 Row  {.tabset}
 -----------------------------------------------------------------------
-### Not done yet, welp (it has been around 6 hours already :')
+### Dendrogram of the Faculty of Science dataset
 
 ```{r}
 final_data_filtered <- final_data[-12, ]
-#final_data_filtered <- filter(final_data_filtered, faculty == "Faculty of Science")
+final_data_filtered <- filter(final_data_filtered, faculty == "Faculty of Science")
 
 halloween <-
   #get_playlist_audio_features("bnfcollection", "1vsoLSK3ArkpaIHmUaF02C") |>
@@ -802,7 +1063,7 @@ halloween_dendro <- halloween_dist |>
 
 ordered_colors <- color_vector[order.dendrogram(halloween_dendro)]
 dend_colored <- color_branches(halloween_dendro, k = length(unique(color_mapping)), col = colors[ordered_colors])
-plot(dend_colored)
+plot(dend_colored) + theme(axis.text.x = element_text(size = 8))  # Adjust font size of x-axis labels
 
 
 # # Create a data frame for plotting with colors
@@ -819,17 +1080,141 @@ plot(dend_colored)
 
 ### Explanation of the graph
 
-I have not got this graph to work yet, i was planning on showing multiple faculties seperated by colour to see how things overlap and are in common but I keep getting crashes and colours not working properly. So for now I only have this for the science faculties. A thing to note is that there are the same amount of clusters then people in this group, which could mean that they all have quite different preferences in songs. However, for some reason in the last code push the song labels have dissapeared and I have not yet found a fix.
+When looking at this dendrogram I immediately notice that a lot of clusters consist of 5 songs. Looking at the fact that everyone that provided data gave me 5 songs, this would make a lot of sense. Mainly because a lot of people have matching genres or even performers in their top 5 songs. I originally wanted to include the other faculties as well and divide them in colors, this however was a challenge that I could not overcome, I have spend approximately 10 hours on it and nothing seemed to work. So I settled for this representation.
 
-Discussion/Conclusion
+Statistical analysis
 =======================================================================
 
 Row  {.tabset}
 -----------------------------------------------------------------------
 
-I have not yet had the time to do a statistic analysis (and I have also not added all the data yet) so I have no clear conclusion yet. For now with the naked eye it seems like there is no significant difference between different groups (excluding the Faculty of Medicine because of the low sample size). 
+### Post hoc results energy
+
+```{r statistcal_analysis_energy}
+
+#final_data %>%
+  #group_by(faculty) %>%
+  #select(valence, energy, faculty, bachelor) %>%
+  #summarize(mean_valence = mean(valence), mean_energy = mean(energy), sd_valence = sd(valence), sd_energy = sd(energy))
+
+anova_result_1 <- aov(energy ~ faculty, data = final_data)
+
+#summary(anova_result_1)
+#summary(anova_result_2)
+
+tukey_result_1 <- HSD.test(anova_result_1, "faculty", group = TRUE) #energy
 
 
+# Access the "statistics" component
+statistics <- tukey_result_1$statistics
+
+# Access the "parameters" component
+parameters <- tukey_result_1$parameters
+
+# Access the "means" component
+means <- tukey_result_1$means
+
+# Access the "groups" component
+groups <- tukey_result_1$groups
+
+print(tukey_result_1)
+#print(groups)
+#print(statistics)
+
+```
 
 
+***
 
+These are the results of the post hoc analysis, specifically the tukey test. The most important part is the comparison value, this returns NULL, meaning that there is no significant difference between any faculty in terms of energy
+
+### Post hoc results valence
+
+```{r statistcal_analysis_valence}
+
+#final_data %>%
+  #group_by(faculty) %>%
+  #select(valence, energy, faculty, bachelor) %>%
+  #summarize(mean_valence = mean(valence), mean_energy = mean(energy), sd_valence = sd(valence), sd_energy = sd(energy))
+
+anova_result_2 <- aov(valence ~ faculty, data = final_data)
+
+#summary(anova_result_1)
+#summary(anova_result_2)
+
+#tukey_result_1 <- HSD.test(anova_result_1, "faculty", group = TRUE) #energy
+tukey_result_1 <- HSD.test(anova_result_2, "faculty", group = TRUE) #valence
+
+# Access the "statistics" component
+statistics <- tukey_result_1$statistics
+
+# Access the "parameters" component
+parameters <- tukey_result_1$parameters
+
+# Access the "means" component
+means <- tukey_result_1$means
+
+# Access the "groups" component
+groups <- tukey_result_1$groups
+
+print(tukey_result_1)
+#print(groups)
+#print(statistics)
+
+```
+
+
+***
+
+These are the results of the post hoc analysis, specifically the tukey test. The most important part is the comparison value, this returns NULL, meaning that there is no significant difference between any faculty in terms of valence.
+
+### Post hoc results loudness
+
+```{r statistcal_analysis_loudness}
+
+#final_data %>%
+  #group_by(faculty) %>%
+  #select(valence, energy, faculty, bachelor) %>%
+  #summarize(mean_valence = mean(valence), mean_energy = mean(energy), sd_valence = sd(valence), sd_energy = sd(energy))
+
+anova_result_3 <- aov(loudness ~ faculty, data = final_data)
+
+#summary(anova_result_1)
+#summary(anova_result_2)
+
+#tukey_result_1 <- HSD.test(anova_result_1, "faculty", group = TRUE) #energy
+tukey_result_3 <- HSD.test(anova_result_3, "faculty", group = TRUE) #valence
+
+# Access the "statistics" component
+statistics <- tukey_result_3$statistics
+
+# Access the "parameters" component
+parameters <- tukey_result_3$parameters
+
+# Access the "means" component
+means <- tukey_result_3$means
+
+# Access the "groups" component
+groups <- tukey_result_3$groups
+
+print(tukey_result_3)
+#print(groups)
+#print(statistics)
+
+```
+
+
+***
+
+These are the results of the post hoc analysis, specifically the tukey test. The most important part is the comparison value, this returns NULL, meaning that there is no significant difference between any faculty in terms of loudness.
+
+
+Discussion/Conclusion
+=======================================================================
+
+I did a few statistical analyses on the data of my corpus. I specifically looked at energy, valence and loudness. Neither of these variables seemed to have any significant difference between any group as shown in the results of the post hoc analysis (the tukey test). Which means that although the difference are cleary there between groups and songs, there are not any significant differences on average. This is quite interesting because I really thought there would be a significant difference before I started to gather data, however the second I made my first graph I noticed that the differences are not that big on average. This might be because of the small sample sizes and because on average certain genres are more popular then others, which means that there is a big chance that people are fan of the same genre, thus making it more likely to have similar songs in terms of energy, valence and loudness.
+
+I did however learn that tempo analysis and novelty graphs can give a lot of information and insights on a song, and make a lot of sense if you match them to a certain genre (like I mentioned in the corresponding tabs). The chromagram, key and chord analyses made a lot of sense in combination with the type of song (minor or major mainly) which justifies the spotify api which is nice to know that it does things well.
+
+Row  {.tabset}
+-----------------------------------------------------------------------
